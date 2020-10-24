@@ -20,6 +20,7 @@ const int ledVerde = 3;
 // Declaro variables
 int distancia;
 int duracion;
+int contadorDuracionAlarma = 0;
 const int tiempoAntirebote = 10;
 int activarAlarma = false;
 int estadoAlarma = LOW;
@@ -143,16 +144,32 @@ void loop() {
   // Verificamos si la alarma esta apagada
   else{
   	encenderColorVerde();
+    contadorDuracionAlarma = 0;
   }
   
 
   if (estadoAlarma == HIGH)
   {  
-    digitalWrite(buzzer, estadoAlarma); // Ensendemos zumbador
-    digitalWrite(led, estadoAlarma); // Ensendemos zumbador
-    delay(500);  // Esperamos 500ms
-    digitalWrite(buzzer, LOW); // Apagamos zumbador
-    digitalWrite(led, LOW); // Apagamos led
+    if (contadorDuracionAlarma < 10)
+    {
+      digitalWrite(buzzer, estadoAlarma); // Ensendemos zumbador
+      digitalWrite(led, estadoAlarma); // Ensendemos led
+      delay(500);  // Esperamos 500ms
+      digitalWrite(buzzer, LOW); // Apagamos zumbador
+      digitalWrite(led, LOW); // Apagamos led
+      delay(500);  // Esperamos 500ms
+      
+      // Incremento el contador para que la alarma no suene infinitamente 
+      contadorDuracionAlarma += 1;
+      Serial.println(contadorDuracionAlarma); 
+    }
+    else
+    {
+      estadoAlarma = LOW;
+      contadorDuracionAlarma = 0;
+    }
+    
+    
   }
   else
   {
