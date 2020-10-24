@@ -5,21 +5,21 @@
 #define Boton_3 0xFD48B7
 
 // Declaración de pin de entrada y salida
-const int botonBaul = 9;
-const int botonPuerta = 10;
-const int botonCapot = 11;
 const int buzzer = 13;
 const int led = 12;
-const int ledRojo = 5;
-const int ledAzul = 4;
-const int ledVerde = 3;
+const int botonCapot = 11;
+const int botonPuerta = 10;
+const int botonBaul = 9;
 const int sensorIR = 8;  // Pin de sensor
 int trig = 7;
 int eco = 6;
-int distancia;
-int duracion;
+const int ledRojo = 5;
+const int ledAzul = 4;
+const int ledVerde = 3;
 
 // Declaro variables
+int distancia;
+int duracion;
 const int tiempoAntirebote = 10;
 int activarAlarma = false;
 int estadoAlarma = LOW;
@@ -129,21 +129,25 @@ void loop() {
     // Mostramos el codigo recibido, HEX define que el valor sera hexadecimal
     Serial.println(codigo.value, HEX);  
     if(codigo.value == Boton_1){
+      encenderColorRojo();
       activarAlarma = !activarAlarma;
       estadoAlarma = LOW;
     }
     irrecv.resume();  //  Sirve para que este listo el objeto para recibir otro codigo
   }
 
+  // Verificamos si la alarma esta prendida poniendo los sensores a la escucha
   if(activarAlarma == true){
     alarmaActiva();
-    Serial.println(activarAlarma); 
+  }
+  // Verificamos si la alarma esta apagada
+  else{
+  	encenderColorVerde();
   }
   
 
   if (estadoAlarma == HIGH)
   {  
-    encenderColorRojo();
     digitalWrite(buzzer, estadoAlarma); // Ensendemos zumbador
     digitalWrite(led, estadoAlarma); // Ensendemos zumbador
     delay(500);  // Esperamos 500ms
@@ -152,7 +156,6 @@ void loop() {
   }
   else
   {
-    encenderColorVerde();
     digitalWrite(buzzer, LOW); // Ensendemos zumbador
     digitalWrite(led, LOW); // Ensendemos zumbador
   }
