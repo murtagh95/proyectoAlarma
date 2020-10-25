@@ -1,8 +1,6 @@
 // Librerias
 #include <IRremote.h>
 #define Boton_1 0xFD00FF
-#define Boton_2 0xFD8877
-#define Boton_3 0xFD48B7
 
 // Declaración de pin de entrada y salida
 const int buzzer = 13;
@@ -57,7 +55,8 @@ boolean antirebote(int pin) {
   return estado;
 }
 
-void alarmaActiva(){
+void controlBotones(){
+  // Boton Baul
   estadobotonBaul = digitalRead(botonBaul);
   if(estadobotonBaul !=estadoBotonAnteriorBaul) 
   {
@@ -68,6 +67,7 @@ void alarmaActiva(){
   }
   estadoBotonAnteriorBaul = estadobotonBaul;
   
+  // Boton Puertas
   estadobotonPuerta = digitalRead(botonPuerta);
   if(estadobotonPuerta !=estadoBotonAnteriorPuerta) {
     if(antirebote(botonPuerta)) {
@@ -76,7 +76,8 @@ void alarmaActiva(){
       }
     }
   estadoBotonAnteriorPuerta = estadobotonPuerta;
-  
+
+  // Boton Capot
   estadobotonCapot = digitalRead(botonCapot);
   if(estadobotonCapot !=estadoBotonAnteriorCapot) {
     if(antirebote(botonCapot)) {
@@ -87,23 +88,44 @@ void alarmaActiva(){
   estadoBotonAnteriorCapot = estadobotonCapot;
 }
 
+void controlUltrasonido(){
+  // Largamos un pulso en el sonsor SR04
+  digitalWrite(trig, HIGH);
+  delay(1);
+  digitalWrite(trig, LOW);
+  
+  duracion = pulseIn(eco, HIGH);  // Leemos la duración del pulso
+  distancia = duracion / 58.2;  // Transformamos la duración en centimetros
+  Serial.println(distancia);  // Mandamos al monitor serial la distancia
+
+  if(distancia < 30 && distancia >= 0){  // Si la distancia es menos a 30cm entonces:
+    estadoAlarma = HIGH;
+    Serial.println("Activacion por sensor Ultrasonido");
+  }
+}
+
+void alarmaActiva(){
+  controlBotones();
+  controlUltrasonido();
+}
+
 void encenderColorRojo(){
   digitalWrite(ledRojo, HIGH); // Ensendemos led Rojo
-  digitalWrite(ledAzul, LOW); // Apagamos led Rojo
-  digitalWrite(ledVerde, LOW); // Apagamos led Rojo
+  digitalWrite(ledAzul, LOW); // Apagamos led Azul
+  digitalWrite(ledVerde, LOW); // Apagamos led Verde
 }
 
 void encenderColorAzul(){
   digitalWrite(ledRojo, LOW); // Apagamos led Rojo
-  digitalWrite(ledAzul, HIGH); // Ensendemos led Rojo
-  digitalWrite(ledVerde, LOW); // Apagamos led Rojo
+  digitalWrite(ledAzul, HIGH); // Ensendemos led Azul
+  digitalWrite(ledVerde, LOW); // Apagamos led Verde
 
 }
 
 void encenderColorVerde(){
   digitalWrite(ledRojo, LOW); // Apagamos led Rojo
-  digitalWrite(ledAzul, LOW); // Apagamos led Rojo
-  digitalWrite(ledVerde, HIGH); // Ensendemos led Rojo
+  digitalWrite(ledAzul, LOW); // Apagamos led Azul
+  digitalWrite(ledVerde, HIGH); // Ensendemos led Verde
 
 }
 
@@ -129,7 +151,7 @@ void loop() {
   if(irrecv.decode(&codigo)){
     // Mostramos el codigo recibido, HEX define que el valor sera hexadecimal
     Serial.println(codigo.value, HEX);  
-    if(codigo.value == Boton_1){
+    if(codigo.value == Boton_1){  // Si precionamos el primer boton
       encenderColorRojo();
       activarAlarma = !activarAlarma;
       estadoAlarma = LOW;
@@ -163,6 +185,7 @@ void loop() {
       contadorDuracionAlarma += 1;
       Serial.println(contadorDuracionAlarma); 
     }
+    // Si la alarma sono demaciado tiempo la apago
     else
     {
       estadoAlarma = LOW;
@@ -171,10 +194,10 @@ void loop() {
     
     
   }
-  else
+  else  // Si la alarma no esta activa apagamos los actuadores de aviso
   {
-    digitalWrite(buzzer, LOW); // Ensendemos zumbador
-    digitalWrite(led, LOW); // Ensendemos zumbador
+    digitalWrite(buzzer, LOW); // Apagamos zumbador
+    digitalWrite(led, LOW); // Apagamos led
   }
   
 }
